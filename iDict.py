@@ -12,7 +12,7 @@ class iDict(OrderedDict):
             if v.tag == 'integer':
                 self[k.text] = int(v.text)
             elif v.tag == 'string':
-                self[k.text] = v.text
+                self[k.text] = v.text.strip()
             elif v.tag == 'true' or v.tag == 'false':
                 self[k.text] = (v.tag == 'true')
             elif v.tag == 'date':

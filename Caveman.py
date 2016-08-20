@@ -19,9 +19,11 @@ prop = RB.RhythmDBPropType
 
 class Caveman (RhythmUIHelper.RhythmUIHelper):
 
+    import_queue = []
+    export_queue = []
     rb2it = {
         prop.ALBUM: 'Album',
-        #prop.ALBUM_ARTIST
+        prop.ALBUM_ARTIST: 'Album Artist',
         #prop.ALBUM_ARTIST_FOLDED
         #prop.ALBUM_ARTIST_SORTNAME
         #prop.ALBUM_ARTIST_SORTNAME_FOLDED
@@ -37,7 +39,7 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         #prop.ARTIST_SORTNAME_FOLDED
         #prop.ARTIST_SORTNAME_SORT_KEY
         #prop.ARTIST_SORT_KEY
-        #prop.BEATS_PER_MINUTE
+        prop.BEATS_PER_MINUTE: 'BPM',
         prop.BITRATE: 'Bit Rate',
         prop.COMMENT: 'Comments',
         prop.COMPOSER: 'Composer',
@@ -49,10 +51,10 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         #prop.COPYRIGHT
         #prop.DATE: 'Date Added',
         #prop.DESCRIPTION: 'Comments',
-        #prop.DISC_NUMBER
+        prop.DISC_NUMBER: 'Disc Number',
         #prop.DISC_TOTAL
         prop.DURATION: 'Total Time',
-        #prop.ENTRY_ID
+        #prop.ENTRY_ID # Can't be set
         prop.FILE_SIZE: 'Size',
         prop.FIRST_SEEN: 'Date Added',
         #prop.FIRST_SEEN_STR
@@ -67,7 +69,7 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         #prop.LAST_PLAYED_STR
         #prop.LAST_SEEN
         #prop.LAST_SEEN_STR
-        #prop.LOCATION
+        #prop.LOCATION # Special
         #prop.MB_ALBUMARTISTID
         #prop.MB_ALBUMID
         #prop.MB_ARTISTID
@@ -85,9 +87,9 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         #prop.REPLAYGAIN_TRACK_GAIN
         #prop.REPLAYGAIN_TRACK_PEAK
         #prop.SEARCH_MATCH
-        #prop.STATUS
+        #prop.STATUS # Can't be set
         #prop.SUBTITLE
-        #prop.SUMMARY
+        #prop.SUMMARY # Can't be set
         prop.TITLE: 'Name',
         #prop.TITLE_FOLDED
         #prop.TITLE_SORT_KEY
@@ -165,24 +167,25 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
             dir = os.path.expanduser("~")
         return dir
 
+    def import_callback(self, data=None):
+        if len(self.import_queue) == 0: return False
+        next_song = self.import_queue.pop(0)
+        self.import_update_song(next_song)
+        return len(self.import_queue) > 0
+
     def import_from_itunes(self, action=None, parameter=None, shell=None):
         xml_file = self.config.get('DEFAULT', 'itunes_xml_file')
         if not os.path.isfile(xml_file): return
 
-        print("Commencing import")
-
+        print("Loading iTunes library")
         root_dict = iDict.iDict(ET.parse(xml_file).getroot()[0])
+        print("Queueing import")
         self.foreign_prefix = root_dict['Music Folder']
 
-        i=0
-        for k, v in root_dict['Tracks'].items():
-            self.import_update_song(v)
-            i += 1
-            if i >= 15: break
+        self.import_queue = list(root_dict['Tracks'].values())
 
-        print("Completing import")
-
-
+        print("Triggering import of {} tracks".format(len(self.import_queue)))
+        self.add_idle_callback(self.import_callback)
 
     def export_to_itunes(self, action=None, parameter=None, shell=None):
         pass
@@ -228,6 +231,8 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
                         song[k] = int(new_song[v] / 1000)
                     elif v == 'Rating':
                         song[k] = int(new_song[v] / 20)
+                    elif v == 'BPM':
+                        song[k] = int(new_song[v] / 100)
                     else:
                         song[k] = new_song[v]
                 except KeyError:

@@ -205,10 +205,14 @@ class RBSong:
         else:
             entry_type = db.entry_type_get_by_name('iradio')
         entry = RB.RhythmDBEntry.new(db, entry_type, uri)
-        return RBSong(db, entry)
-
-
-
+        #return RBSong(db, entry)
+        # Pre-populate some fields in case they don't get set
+        ret_val = RBSong(db, entry)
+        #ret_val[prop.TITLE] = 'Untitled song'
+        #ret_val[prop.ARTIST] = 'Unknown'
+        #ret_val[prop.ALBUM] = 'Unknown'
+        #ret_val[prop.GENRE] = 'Unknown'
+        return ret_val
 
 #
 # Editor modelines  -  https://www.wireshark.org/tools/modelines.html

@@ -1,5 +1,5 @@
 
-from gi.repository import GObject, RB, Peas, Gio
+from gi.repository import GObject, RB, Peas, Gio, GLib
 
 class RhythmUIHelper (GObject.Object, Peas.Activatable):
     """
@@ -57,6 +57,9 @@ class RhythmUIHelper (GObject.Object, Peas.Activatable):
             self.when_deactivated(app.remove_plugin_menu_item, parentMenu, name)
 
         return action
+
+    def add_idle_callback(self, cb, data=None):
+        GLib.idle_add(cb, data)
 
 #
 # Editor modelines  -  https://www.wireshark.org/tools/modelines.html
