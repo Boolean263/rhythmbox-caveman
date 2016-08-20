@@ -1,0 +1,9 @@
+[Plugin]
+Loader=python3
+Module=Caveman
+IAge=2
+Name=Caveman - reinventing the iTunes import wheel
+Description=Sync rhythmbox with an iTunes library on start and exit
+Authors=David Perry <d.perry@utoronto.ca>
+Copyright=Copyright © 2016 David Perry
+Website=https://github.com/boolean263

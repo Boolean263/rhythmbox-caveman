@@ -1,0 +1,6 @@
+[DEFAULT]
+music_root_dir = XDG_MUSIC_DIR
+itunes_xml_file = /path/to/iTunes Music Library.xml
+auto_import = False
+auto_export = False
+backup_on_export = True
