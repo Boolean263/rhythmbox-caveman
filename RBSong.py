@@ -2,6 +2,7 @@ from gi.repository import GObject, RB, Peas, Gio
 import datetime
 
 prop = RB.RhythmDBPropType
+datetime_type = type(datetime.datetime.now())
 
 class RBSong:
     propNames = {
@@ -109,14 +110,14 @@ class RBSong:
         prop.COMPOSER_SORTNAME_SORT_KEY: str,
         prop.COMPOSER_SORT_KEY: str,
         prop.COPYRIGHT: str,
-        prop.DATE: datetime.datetime,
+        prop.DATE: datetime_type,
         prop.DESCRIPTION: str,
         prop.DISC_NUMBER: int,
         prop.DISC_TOTAL: int,
         prop.DURATION: int,
         #prop.ENTRY_ID
         prop.FILE_SIZE: int,
-        prop.FIRST_SEEN: datetime.datetime,
+        prop.FIRST_SEEN: datetime_type,
         prop.FIRST_SEEN_STR: str,
         prop.GENRE: str,
         prop.GENRE_FOLDED: str,
@@ -125,9 +126,9 @@ class RBSong:
         #prop.IMAGE
         prop.KEYWORD: str,
         prop.LANG: str,
-        prop.LAST_PLAYED: datetime.datetime,
+        prop.LAST_PLAYED: datetime_type,
         prop.LAST_PLAYED_STR: str,
-        prop.LAST_SEEN: datetime.datetime,
+        prop.LAST_SEEN: datetime_type,
         prop.LAST_SEEN_STR: str,
         prop.LOCATION: str,
         #prop.MB_ALBUMARTISTID
@@ -137,10 +138,10 @@ class RBSong:
         #prop.MB_TRACKID
         prop.MEDIA_TYPE: str,
         prop.MOUNTPOINT: str,
-        prop.MTIME: datetime.datetime,
+        prop.MTIME: datetime_type,
         #prop.PLAYBACK_ERROR
         prop.PLAY_COUNT: int,
-        prop.POST_TIME: datetime.datetime,
+        prop.POST_TIME: datetime_type,
         prop.RATING: int,
         prop.REPLAYGAIN_ALBUM_GAIN: float,
         prop.REPLAYGAIN_ALBUM_PEAK: float,
@@ -173,18 +174,19 @@ class RBSong:
             return self.entry.get_ulong(prop_id)
         elif prop_type == float:
             return self.entry.get_double(prop_id)
-        elif prop_type == datetime.datetime:
+        elif prop_type == datetime_type:
             n = self.entry.get_ulong(prop_id)
             return datetime.datetime.fromtimestamp(n, tz=datetime.timezone.utc)
 
     def __setitem__(self, prop_id, val):
         if val is None: return
-        if type(val) == datetime.datetime:
-            val = val.timestamp()
+        if type(val) == datetime_type:
+            val = int(val.timestamp())
         if prop_id == prop.RATING and val > 5:
             # iTunes rates from 0-100, RB from 0-5
-            val = val / 20
-        return self.db.entry_set(self.entry, prop_id, val)
+            val = int(val / 20)
+        self.db.entry_set(self.entry, prop_id, val)
+        return val
 
     def commit(self):
         self.db.commit()

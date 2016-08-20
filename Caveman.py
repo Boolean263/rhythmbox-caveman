@@ -15,86 +15,87 @@ import RBSong
 # I'll add a config UI later
 #from config import CavemanConfig
 
+prop = RB.RhythmDBPropType
+
 class Caveman (RhythmUIHelper.RhythmUIHelper):
 
     rb2it = {
-        RB.RhythmDBPropType.ALBUM: 'Album',
-        #RB.RhythmDBPropType.ALBUM_ARTIST
-        #RB.RhythmDBPropType.ALBUM_ARTIST_FOLDED
-        #RB.RhythmDBPropType.ALBUM_ARTIST_SORTNAME
-        #RB.RhythmDBPropType.ALBUM_ARTIST_SORTNAME_FOLDED
-        #RB.RhythmDBPropType.ALBUM_ARTIST_SORTNAME_SORT_KEY
-        #RB.RhythmDBPropType.ALBUM_ARTIST_SORT_KEY
-        #RB.RhythmDBPropType.ALBUM_FOLDED
-        #RB.RhythmDBPropType.ALBUM_SORTNAME
-        #RB.RhythmDBPropType.ALBUM_SORTNAME_FOLDED
-        #RB.RhythmDBPropType.ALBUM_SORTNAME_SORT_KEY
-        #RB.RhythmDBPropType.ALBUM_SORT_KEY
-        RB.RhythmDBPropType.ARTIST: 'Artist',
-        #RB.RhythmDBPropType.ARTIST_FOLDED
-        #RB.RhythmDBPropType.ARTIST_SORTNAME_FOLDED
-        #RB.RhythmDBPropType.ARTIST_SORTNAME_SORT_KEY
-        #RB.RhythmDBPropType.ARTIST_SORT_KEY
-        #RB.RhythmDBPropType.BEATS_PER_MINUTE
-        RB.RhythmDBPropType.BITRATE: 'Bit Rate',
-        #RB.RhythmDBPropType.COMMENT: 'Comments',
-        RB.RhythmDBPropType.COMPOSER: 'Composer',
-        #RB.RhythmDBPropType.COMPOSER_FOLDED
-        #RB.RhythmDBPropType.COMPOSER_SORTNAME
-        #RB.RhythmDBPropType.COMPOSER_SORTNAME_FOLDED
-        #RB.RhythmDBPropType.COMPOSER_SORTNAME_SORT_KEY
-        #RB.RhythmDBPropType.COMPOSER_SORT_KEY
-        #RB.RhythmDBPropType.COPYRIGHT
-        RB.RhythmDBPropType.DATE: 'Date Added',
-        RB.RhythmDBPropType.DESCRIPTION: 'Comments',
-        #RB.RhythmDBPropType.DISC_NUMBER
-        #RB.RhythmDBPropType.DISC_TOTAL
-        #RB.RhythmDBPropType.DURATION
-        #RB.RhythmDBPropType.ENTRY_ID
-        RB.RhythmDBPropType.FILE_SIZE: 'Size',
-        #RB.RhythmDBPropType.FIRST_SEEN
-        #RB.RhythmDBPropType.FIRST_SEEN_STR
-        RB.RhythmDBPropType.GENRE: 'Genre',
-        #RB.RhythmDBPropType.GENRE_FOLDED
-        #RB.RhythmDBPropType.GENRE_SORT_KEY
-        #RB.RhythmDBPropType.HIDDEN
-        #RB.RhythmDBPropType.IMAGE
-        #RB.RhythmDBPropType.KEYWORD
-        #RB.RhythmDBPropType.LANG
-        RB.RhythmDBPropType.LAST_PLAYED: 'Play Date',
-        #RB.RhythmDBPropType.LAST_PLAYED_STR
-        #RB.RhythmDBPropType.LAST_SEEN
-        #RB.RhythmDBPropType.LAST_SEEN_STR
-        #RB.RhythmDBPropType.LOCATION
-        #RB.RhythmDBPropType.MB_ALBUMARTISTID
-        #RB.RhythmDBPropType.MB_ALBUMID
-        #RB.RhythmDBPropType.MB_ARTISTID
-        #RB.RhythmDBPropType.MB_ARTISTSORTNAME
-        #RB.RhythmDBPropType.MB_TRACKID
-        RB.RhythmDBPropType.MEDIA_TYPE: 'Kind',
-        #RB.RhythmDBPropType.MOUNTPOINT
-        RB.RhythmDBPropType.MTIME: 'Date Modified',
-        #RB.RhythmDBPropType.PLAYBACK_ERROR
-        RB.RhythmDBPropType.PLAY_COUNT: 'Play Count',
-        #RB.RhythmDBPropType.POST_TIME
-        #RB.RhythmDBPropType.RATING: 'Rating',
-        #RB.RhythmDBPropType.REPLAYGAIN_ALBUM_GAIN
-        #RB.RhythmDBPropType.REPLAYGAIN_ALBUM_PEAK
-        #RB.RhythmDBPropType.REPLAYGAIN_TRACK_GAIN
-        #RB.RhythmDBPropType.REPLAYGAIN_TRACK_PEAK
-        #RB.RhythmDBPropType.SEARCH_MATCH
-        #RB.RhythmDBPropType.STATUS
-        #RB.RhythmDBPropType.SUBTITLE
-        #RB.RhythmDBPropType.SUMMARY
-        RB.RhythmDBPropType.TITLE: 'Name',
-        #RB.RhythmDBPropType.TITLE_FOLDED
-        #RB.RhythmDBPropType.TITLE_SORT_KEY
-        RB.RhythmDBPropType.TRACK_NUMBER: 'Track Number',
-        #RB.RhythmDBPropType.TRACK_TOTAL
-        RB.RhythmDBPropType.TYPE: 'Track Type',
-        RB.RhythmDBPropType.YEAR: 'Year',
+        prop.ALBUM: 'Album',
+        #prop.ALBUM_ARTIST
+        #prop.ALBUM_ARTIST_FOLDED
+        #prop.ALBUM_ARTIST_SORTNAME
+        #prop.ALBUM_ARTIST_SORTNAME_FOLDED
+        #prop.ALBUM_ARTIST_SORTNAME_SORT_KEY
+        #prop.ALBUM_ARTIST_SORT_KEY
+        #prop.ALBUM_FOLDED
+        #prop.ALBUM_SORTNAME
+        #prop.ALBUM_SORTNAME_FOLDED
+        #prop.ALBUM_SORTNAME_SORT_KEY
+        #prop.ALBUM_SORT_KEY
+        prop.ARTIST: 'Artist',
+        #prop.ARTIST_FOLDED
+        #prop.ARTIST_SORTNAME_FOLDED
+        #prop.ARTIST_SORTNAME_SORT_KEY
+        #prop.ARTIST_SORT_KEY
+        #prop.BEATS_PER_MINUTE
+        prop.BITRATE: 'Bit Rate',
+        prop.COMMENT: 'Comments',
+        prop.COMPOSER: 'Composer',
+        #prop.COMPOSER_FOLDED
+        #prop.COMPOSER_SORTNAME
+        #prop.COMPOSER_SORTNAME_FOLDED
+        #prop.COMPOSER_SORTNAME_SORT_KEY
+        #prop.COMPOSER_SORT_KEY
+        #prop.COPYRIGHT
+        #prop.DATE: 'Date Added',
+        #prop.DESCRIPTION: 'Comments',
+        #prop.DISC_NUMBER
+        #prop.DISC_TOTAL
+        prop.DURATION: 'Total Time',
+        #prop.ENTRY_ID
+        prop.FILE_SIZE: 'Size',
+        prop.FIRST_SEEN: 'Date Added',
+        #prop.FIRST_SEEN_STR
+        prop.GENRE: 'Genre',
+        #prop.GENRE_FOLDED
+        #prop.GENRE_SORT_KEY
+        #prop.HIDDEN
+        #prop.IMAGE
+        #prop.KEYWORD
+        #prop.LANG
+        prop.LAST_PLAYED: 'Play Date UTC',
+        #prop.LAST_PLAYED_STR
+        #prop.LAST_SEEN
+        #prop.LAST_SEEN_STR
+        #prop.LOCATION
+        #prop.MB_ALBUMARTISTID
+        #prop.MB_ALBUMID
+        #prop.MB_ARTISTID
+        #prop.MB_ARTISTSORTNAME
+        #prop.MB_TRACKID
+        #prop.MEDIA_TYPE: 'Kind',
+        #prop.MOUNTPOINT
+        #prop.MTIME: 'Date Modified',
+        #prop.PLAYBACK_ERROR
+        prop.PLAY_COUNT: 'Play Count',
+        #prop.POST_TIME
+        prop.RATING: 'Rating',
+        #prop.REPLAYGAIN_ALBUM_GAIN
+        #prop.REPLAYGAIN_ALBUM_PEAK
+        #prop.REPLAYGAIN_TRACK_GAIN
+        #prop.REPLAYGAIN_TRACK_PEAK
+        #prop.SEARCH_MATCH
+        #prop.STATUS
+        #prop.SUBTITLE
+        #prop.SUMMARY
+        prop.TITLE: 'Name',
+        #prop.TITLE_FOLDED
+        #prop.TITLE_SORT_KEY
+        prop.TRACK_NUMBER: 'Track Number',
+        #prop.TRACK_TOTAL
+        #prop.TYPE: 'Track Type',
+        prop.YEAR: 'Year',
     }
-    it2rb = {v: k for k, v in rb2it.items()}
 
     def __init__(self):
         """
@@ -173,8 +174,11 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         root_dict = iDict.iDict(ET.parse(xml_file).getroot()[0])
         self.foreign_prefix = root_dict['Music Folder']
 
+        i=0
         for k, v in root_dict['Tracks'].items():
             self.import_update_song(v)
+            i += 1
+            if i >= 15: break
 
         print("Completing import")
 
@@ -185,7 +189,6 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
 
     def import_update_song(self, new_song):
         db = self.object.props.db
-        prop = RB.RhythmDBPropType
 
         try:
             song_uri = new_song["Location"]
@@ -206,17 +209,32 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         song = RBSong.RBSong.findByURI(db, song_uri)
         if song:
             # Song exists, see if we need to update it
+            print("Updating: "+song[prop.TITLE])
             if song[prop.LAST_PLAYED] < new_song['Play Date UTC']:
-                song[prop.LAST_SEEN] = datetime.datetime.now()
-                song[prop.RATING] = new_song['Rating']
+                song[prop.RATING] = int(new_song['Rating'] / 20)
                 song[prop.PLAY_COUNT] = new_song['Play Count']
                 song[prop.LAST_PLAYED] = new_song['Play Date UTC']
+                #song[prop.DESCRIPTION] = "(Caveman:TID={},PID={})".format(new_song['Track ID'], new_song['Persistent ID']);
                 song.commit()
 
         else:
             # Song doesn't exist, we need to add it
-            #print("Didn't find song for "+song_uri)
-            pass
+            print("Adding: "+new_song['Name'])
+            song = RBSong.RBSong.add(db, song_uri)
+            #song[prop.DESCRIPTION] = "(Caveman:TID={},PID={})".format(new_song['Track ID'], new_song['Persistent ID']);
+            for k, v in self.rb2it.items():
+                try:
+                    if v == 'Total Time':
+                        song[k] = int(new_song[v] / 1000)
+                    elif v == 'Rating':
+                        song[k] = int(new_song[v] / 20)
+                    else:
+                        song[k] = new_song[v]
+                except KeyError:
+                    #print("Warning: KeyError:"+v)
+                    pass
+            song.commit()
+
 
 #
 # Editor modelines  -  https://www.wireshark.org/tools/modelines.html
