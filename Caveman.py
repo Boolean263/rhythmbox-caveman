@@ -48,11 +48,11 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         #prop.COMPOSER_SORTNAME_FOLDED
         #prop.COMPOSER_SORTNAME_SORT_KEY
         #prop.COMPOSER_SORT_KEY
-        #prop.COPYRIGHT
+        #prop.COPYRIGHT # Can't be set
         #prop.DATE: 'Date Added',
-        #prop.DESCRIPTION: 'Comments',
+        #prop.DESCRIPTION # Can't be set
         prop.DISC_NUMBER: 'Disc Number',
-        #prop.DISC_TOTAL
+        prop.DISC_TOTAL: 'Disc Count',
         prop.DURATION: 'Total Time',
         #prop.ENTRY_ID # Can't be set
         prop.FILE_SIZE: 'Size',
@@ -94,7 +94,7 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         #prop.TITLE_FOLDED
         #prop.TITLE_SORT_KEY
         prop.TRACK_NUMBER: 'Track Number',
-        #prop.TRACK_TOTAL
+        prop.TRACK_TOTAL: 'Track Count',
         #prop.TYPE: 'Track Type',
         prop.YEAR: 'Year',
     }
