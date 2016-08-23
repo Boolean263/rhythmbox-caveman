@@ -6,6 +6,7 @@ import base64
 class iDict(OrderedDict):
     def __init__(self, node):
         super(OrderedDict, self).__init__()
+        self.setdefault(None)
 
         i = iter(node)
         for k,v in zip(i,i):
@@ -21,7 +22,12 @@ class iDict(OrderedDict):
             elif v.tag == 'dict':
                 self[k.text] = iDict(v)
             elif v.tag == 'array':
-                self[k.text] = iter(v)
+                #self[k.text] = iter(v)
+                alist = []
+                for i in iter(v):
+                    d = iDict(i)
+                    alist.append(d)
+                self[k.text] = alist
             elif v.tag == 'data':
                 self[k.text] = base64.b64decode(v.text)
             else:

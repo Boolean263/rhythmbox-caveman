@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-from gi.repository import GObject, RB, Peas, Gio
+from gi.repository import GObject, RB, Peas, Gio, Gtk
 
 import configparser
 import os
 import xml.etree.ElementTree as ET
 import datetime
+
+import dumper
 
 # These ones are from this directory
 import iDict
@@ -19,8 +21,6 @@ prop = RB.RhythmDBPropType
 
 class Caveman (RhythmUIHelper.RhythmUIHelper):
 
-    import_queue = []
-    export_queue = []
     rb2it = {
         prop.ALBUM: 'Album',
         prop.ALBUM_ARTIST: 'Album Artist',
@@ -114,6 +114,16 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         super(Caveman, self).do_activate()
         app = self.object.props.application
 
+        self.track_ids = {}
+        self.import_queue = {
+            'songs': [],
+            'playlists': [],
+        }
+        self.export_queue = {
+            'songs': [],
+            'playlists': [],
+        }
+
         self.config = configparser.RawConfigParser()
         self.config_file = os.path.join(os.environ['HOME'], '.local/share/rhythmbox/cavemanrc')
         if os.path.isfile(self.config_file):
@@ -147,6 +157,9 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
 
         self.foreign_prefix = None
         self.our_prefix = None
+        self.track_ids = None
+        self.import_queue = None
+        self.export_queue = None
 
     def get_xdg_music_dir(self):
         """
@@ -167,11 +180,21 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
             dir = os.path.expanduser("~")
         return dir
 
-    def import_callback(self, data=None):
-        if len(self.import_queue) == 0: return False
-        next_song = self.import_queue.pop(0)
-        self.import_update_song(next_song)
-        return len(self.import_queue) > 0
+    def import_cb(self, data=None):
+        print("Idle callback: checking songs")
+        if len(self.import_queue['songs']) > 0:
+            next_song = self.import_queue['songs'].pop(0)
+            if next_song:
+                self.import_update_song(next_song)
+            return True
+        print("Idle callback: checking playlists")
+        if len(self.import_queue['playlists']) > 0:
+            next_list = self.import_queue['playlists'].pop(0)
+            if next_list:
+                self.import_update_playlist(next_list)
+            return True
+        print("Idle callback: giving up")
+        return False
 
     def import_from_itunes(self, action=None, parameter=None, shell=None):
         xml_file = self.config.get('DEFAULT', 'itunes_xml_file')
@@ -179,13 +202,40 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
 
         print("Loading iTunes library")
         root_dict = iDict.iDict(ET.parse(xml_file).getroot()[0])
-        print("Queueing import")
         self.foreign_prefix = root_dict['Music Folder']
 
-        self.import_queue = list(root_dict['Tracks'].values())
+        # Queue songs to import
+        print("Queueing songs to import")
+        self.import_queue['songs'] = list(root_dict['Tracks'].values())
 
-        print("Triggering import of {} tracks".format(len(self.import_queue)))
-        self.add_idle_callback(self.import_callback)
+        # Queue playlists to impmort
+        print("Queueing playlists to import")
+        for plist in root_dict['Playlists']:
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            #print("["+plist['Name']+"]")
+            if plist.get('Master'):
+                #print("... master")
+                continue
+            if plist.get('Distinguished Kind'):
+                #print("... distinguished")
+                continue
+            if plist.get('Smart Info'):
+                #print("... smart")
+                continue
+            if not plist.get('Playlist Items'):
+                #print("... empty")
+                continue
+            #print("... !!")
+            new_list = [ plist['Name'] ]
+            for i in plist['Playlist Items']:
+                new_list.append(i['Track ID'])
+            self.import_queue['playlists'].append(new_list)
+            #print("... on to the next one")
+
+        print("Triggering import of {} tracks".format(len(self.import_queue['songs'])))
+        self.add_idle_callback(self.import_cb)
+        #while self.import_cb(): pass
 
     def export_to_itunes(self, action=None, parameter=None, shell=None):
         pass
@@ -212,7 +262,7 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         song = RBSong.RBSong.findByURI(db, song_uri)
         if song:
             # Song exists, see if we need to update it
-            print("Updating: "+song[prop.TITLE])
+            #print("Updating: "+song[prop.TITLE])
             if song[prop.LAST_PLAYED] < new_song['Play Date UTC']:
                 song[prop.RATING] = int(new_song['Rating'] / 20)
                 song[prop.PLAY_COUNT] = new_song['Play Count']
@@ -222,7 +272,7 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
 
         else:
             # Song doesn't exist, we need to add it
-            print("Adding: "+new_song['Name'])
+            #print("Adding: "+new_song['Name'])
             song = RBSong.RBSong.add(db, song_uri)
             #song[prop.DESCRIPTION] = "(Caveman:TID={},PID={})".format(new_song['Track ID'], new_song['Persistent ID']);
             for k, v in self.rb2it.items():
@@ -239,6 +289,35 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
                     #print("Warning: KeyError:"+v)
                     pass
             song.commit()
+        self.track_ids[new_song['Track ID']] = song[prop.LOCATION]
+
+    def import_update_playlist(self, new_list):
+        pl_man = self.object.props.playlist_manager
+        pl_list = pl_man.get_playlists()
+
+        new_list_name = new_list.pop(0)
+        print("importing new playlist: "+new_list_name)
+
+        # Is there a better way to find if a playlist with the same name
+        # is an automatic playlist
+        # than to iterate over every playlist, every time?
+        for p in pl_list:
+            if isinstance(p, RB.StaticPlaylistSource) and p.props.name == new_list_name:
+                pl_man.delete_playlist(new_list_name)
+                break
+
+        pl_man.create_static_playlist(new_list_name)
+        pl_list = pl_man.get_playlists()
+        for p in pl_list:
+            if isinstance(p, RB.StaticPlaylistSource) and p.props.name == new_list_name:
+                add_locs = []
+                while len(new_list):
+                    add_locs.append( self.track_ids[new_list.pop(0)] )
+                s = p.add_locations(add_locs)
+                break
+
+    def remove_non_itunes_songs(self):
+        entry_ids = set(self.track_ids.values())
 
 
 #
