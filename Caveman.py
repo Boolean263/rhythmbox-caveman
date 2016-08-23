@@ -8,6 +8,8 @@ import xml.etree.ElementTree as ET
 import datetime
 
 import dumper
+def dumpError(ex):
+    print("MOTHER APE ASS. {0} ... {1!r}".format(type(ex).__name__, ex.args))
 
 # These ones are from this directory
 import iDict
@@ -259,21 +261,10 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
             # Song without a file:// prefix, maybe a radio station or sth.
             pass
 
-        song = RBSong.RBSong.findByURI(db, song_uri)
-        if song:
-            # Song exists, see if we need to update it
-            #print("Updating: "+song[prop.TITLE])
-            if song[prop.LAST_PLAYED] < new_song['Play Date UTC']:
-                song[prop.RATING] = int(new_song['Rating'] / 20)
-                song[prop.PLAY_COUNT] = new_song['Play Count']
-                song[prop.LAST_PLAYED] = new_song['Play Date UTC']
-                #song[prop.DESCRIPTION] = "(Caveman:TID={},PID={})".format(new_song['Track ID'], new_song['Persistent ID']);
-                song.commit()
-
-        else:
+        song = RBSong.RBSong(db, song_uri)
+        if song.isNew:
             # Song doesn't exist, we need to add it
             #print("Adding: "+new_song['Name'])
-            song = RBSong.RBSong.add(db, song_uri)
             #song[prop.DESCRIPTION] = "(Caveman:TID={},PID={})".format(new_song['Track ID'], new_song['Persistent ID']);
             for k, v in self.rb2it.items():
                 try:
@@ -288,7 +279,16 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
                 except KeyError:
                     #print("Warning: KeyError:"+v)
                     pass
-            song.commit()
+        else:
+            # Song exists, see if we need to update it
+            #print("Updating: "+song[prop.TITLE])
+            if song[prop.LAST_PLAYED] < new_song['Play Date UTC']:
+                song[prop.RATING] = int(new_song['Rating'] / 20)
+                song[prop.PLAY_COUNT] = new_song['Play Count']
+                song[prop.LAST_PLAYED] = new_song['Play Date UTC']
+                #song[prop.DESCRIPTION] = "(Caveman:TID={},PID={})".format(new_song['Track ID'], new_song['Persistent ID']);
+
+        song.commit()
         self.track_ids[new_song['Track ID']] = song[prop.LOCATION]
 
     def import_update_playlist(self, new_list):
@@ -311,9 +311,11 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         for p in pl_list:
             if isinstance(p, RB.StaticPlaylistSource) and p.props.name == new_list_name:
                 add_locs = []
-                while len(new_list):
-                    add_locs.append( self.track_ids[new_list.pop(0)] )
-                s = p.add_locations(add_locs)
+                try:
+                    while len(new_list):
+                        add_locs.append( self.track_ids[new_list.pop(0)] )
+                    s = p.add_locations(add_locs)
+                except KeyError: pass
                 break
 
     def remove_non_itunes_songs(self):

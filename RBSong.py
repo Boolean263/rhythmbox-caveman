@@ -5,83 +5,7 @@ prop = RB.RhythmDBPropType
 datetime_type = type(datetime.datetime.now())
 
 class RBSong:
-    propNames = {
-        prop.ALBUM: 'ALBUM',
-        prop.ALBUM_ARTIST: 'ALBUM_ARTIST',
-        prop.ALBUM_ARTIST_FOLDED: 'ALBUM_ARTIST_FOLDED',
-        prop.ALBUM_ARTIST_SORTNAME: 'ALBUM_ARTIST_SORTNAME',
-        prop.ALBUM_ARTIST_SORTNAME_FOLDED: 'ALBUM_ARTIST_SORTNAME_FOLDED',
-        prop.ALBUM_ARTIST_SORTNAME_SORT_KEY: 'ALBUM_ARTIST_SORTNAME_SORT_KEY',
-        prop.ALBUM_ARTIST_SORT_KEY: 'ALBUM_ARTIST_SORT_KEY',
-        prop.ALBUM_FOLDED: 'ALBUM_FOLDED',
-        prop.ALBUM_SORTNAME: 'ALBUM_SORTNAME',
-        prop.ALBUM_SORTNAME_FOLDED: 'ALBUM_SORTNAME_FOLDED',
-        prop.ALBUM_SORTNAME_SORT_KEY: 'ALBUM_SORTNAME_SORT_KEY',
-        prop.ALBUM_SORT_KEY: 'ALBUM_SORT_KEY',
-        prop.ARTIST: 'ARTIST',
-        prop.ARTIST_FOLDED: 'ARTIST_FOLDED',
-        prop.ARTIST_SORTNAME_FOLDED: 'ARTIST_SORTNAME_FOLDED',
-        prop.ARTIST_SORTNAME_SORT_KEY: 'ARTIST_SORTNAME_SORT_KEY',
-        prop.ARTIST_SORT_KEY: 'ARTIST_SORT_KEY',
-        prop.BEATS_PER_MINUTE: 'BEATS_PER_MINUTE',
-        prop.BITRATE: 'BITRATE',
-        prop.COMMENT: 'COMMENT',
-        prop.COMPOSER: 'COMPOSER',
-        prop.COMPOSER_FOLDED: 'COMPOSER_FOLDED',
-        prop.COMPOSER_SORTNAME: 'COMPOSER_SORTNAME',
-        prop.COMPOSER_SORTNAME_FOLDED: 'COMPOSER_SORTNAME_FOLDED',
-        prop.COMPOSER_SORTNAME_SORT_KEY: 'COMPOSER_SORTNAME_SORT_KEY',
-        prop.COMPOSER_SORT_KEY: 'COMPOSER_SORT_KEY',
-        prop.COPYRIGHT: 'COPYRIGHT',
-        prop.DATE: 'DATE',
-        prop.DESCRIPTION: 'DESCRIPTION',
-        prop.DISC_NUMBER: 'DISC_NUMBER',
-        prop.DISC_TOTAL: 'DISC_TOTAL',
-        prop.DURATION: 'DURATION',
-        prop.ENTRY_ID: 'ENTRY_ID',
-        prop.FILE_SIZE: 'FILE_SIZE',
-        prop.FIRST_SEEN: 'FIRST_SEEN',
-        prop.FIRST_SEEN_STR: 'FIRST_SEEN_STR',
-        prop.GENRE: 'GENRE',
-        prop.GENRE_FOLDED: 'GENRE_FOLDED',
-        prop.GENRE_SORT_KEY: 'GENRE_SORT_KEY',
-        prop.HIDDEN: 'HIDDEN',
-        prop.IMAGE: 'IMAGE',
-        prop.KEYWORD: 'KEYWORD',
-        prop.LANG: 'LANG',
-        prop.LAST_PLAYED: 'LAST_PLAYED',
-        prop.LAST_PLAYED_STR: 'LAST_PLAYED_STR',
-        prop.LAST_SEEN: 'LAST_SEEN',
-        prop.LAST_SEEN_STR: 'LAST_SEEN_STR',
-        prop.LOCATION: 'LOCATION',
-        prop.MB_ALBUMARTISTID: 'MB_ALBUMARTISTID',
-        prop.MB_ALBUMID: 'MB_ALBUMID',
-        prop.MB_ARTISTID: 'MB_ARTISTID',
-        prop.MB_ARTISTSORTNAME: 'MB_ARTISTSORTNAME',
-        prop.MB_TRACKID: 'MB_TRACKID',
-        prop.MEDIA_TYPE: 'MEDIA_TYPE',
-        prop.MOUNTPOINT: 'MOUNTPOINT',
-        prop.MTIME: 'MTIME',
-        prop.PLAYBACK_ERROR: 'PLAYBACK_ERROR',
-        prop.PLAY_COUNT: 'PLAY_COUNT',
-        prop.POST_TIME: 'POST_TIME',
-        prop.RATING: 'RATING',
-        prop.REPLAYGAIN_ALBUM_GAIN: 'REPLAYGAIN_ALBUM_GAIN',
-        prop.REPLAYGAIN_ALBUM_PEAK: 'REPLAYGAIN_ALBUM_PEAK',
-        prop.REPLAYGAIN_TRACK_GAIN: 'REPLAYGAIN_TRACK_GAIN',
-        prop.REPLAYGAIN_TRACK_PEAK: 'REPLAYGAIN_TRACK_PEAK',
-        prop.SEARCH_MATCH: 'SEARCH_MATCH',
-        prop.STATUS: 'STATUS',
-        prop.SUBTITLE: 'SUBTITLE',
-        prop.SUMMARY: 'SUMMARY',
-        prop.TITLE: 'TITLE',
-        prop.TITLE_FOLDED: 'TITLE_FOLDED',
-        prop.TITLE_SORT_KEY: 'TITLE_SORT_KEY',
-        prop.TRACK_NUMBER: 'TRACK_NUMBER',
-        prop.TRACK_TOTAL: 'TRACK_TOTAL',
-        prop.TYPE: 'TYPE',
-        prop.YEAR: 'YEAR',
-    }
+    # You'd think there'd be some way of getting this from rhythmbox
     propTypes = {
         prop.ALBUM: str,
         prop.ALBUM_ARTIST: str,
@@ -160,9 +84,18 @@ class RBSong:
         prop.YEAR: int,
     }
 
-    def __init__(self, db, db_entry):
+    def __init__(self, db, uri):
         self.db = db
-        self.entry = db_entry
+        self.entry = db.entry_lookup_by_location(uri)
+        if self.entry:
+            self.isNew = False
+        else:
+            if uri[0:7] == 'file://':
+                entry_type = db.entry_type_get_by_name('song')
+            else:
+                entry_type = db.entry_type_get_by_name('iradio')
+            self.entry = RB.RhythmDBEntry.new(db, entry_type, uri)
+            self.isNew = True
 
     def __getitem__(self, prop_id):
         prop_type = self.propTypes[prop_id]
@@ -190,29 +123,7 @@ class RBSong:
 
     def commit(self):
         self.db.commit()
-
-    @staticmethod
-    def findByURI(db, uri):
-        entry = db.entry_lookup_by_location(uri)
-        if not entry: return entry
-        return RBSong(db, entry)
-
-    @staticmethod
-    def add(db, uri):
-        entry_type = None
-        if uri[0:7] == 'file://':
-            entry_type = db.entry_type_get_by_name('song')
-        else:
-            entry_type = db.entry_type_get_by_name('iradio')
-        entry = RB.RhythmDBEntry.new(db, entry_type, uri)
-        #return RBSong(db, entry)
-        # Pre-populate some fields in case they don't get set
-        ret_val = RBSong(db, entry)
-        #ret_val[prop.TITLE] = 'Untitled song'
-        #ret_val[prop.ARTIST] = 'Unknown'
-        #ret_val[prop.ALBUM] = 'Unknown'
-        #ret_val[prop.GENRE] = 'Unknown'
-        return ret_val
+        self.isNew = False
 
 #
 # Editor modelines  -  https://www.wireshark.org/tools/modelines.html
