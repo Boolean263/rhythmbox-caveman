@@ -14,7 +14,7 @@ def dumpError(ex):
 # These ones are from this directory
 import iDict
 import RhythmUIHelper
-import RBSong
+import RBSong, RBPlaylists
 
 # I'll add a config UI later
 #from config import CavemanConfig
@@ -256,7 +256,7 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
             song_uri = self.our_prefix+song_uri[prefix_len:]
         elif song_uri[0:7] == 'file://':
             # Song with a file:// prefix we don't recognize
-            return
+            pass
         else:
             # Song without a file:// prefix, maybe a radio station or sth.
             pass
@@ -293,30 +293,20 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
 
     def import_update_playlist(self, new_list):
         pl_man = self.object.props.playlist_manager
-        pl_list = pl_man.get_playlists()
+        playlists = RBPlaylists.RBPlaylists(pl_man)
 
         new_list_name = new_list.pop(0)
         print("importing new playlist: "+new_list_name)
 
-        # Is there a better way to find if a playlist with the same name
-        # is an automatic playlist
-        # than to iterate over every playlist, every time?
-        for p in pl_list:
-            if isinstance(p, RB.StaticPlaylistSource) and p.props.name == new_list_name:
-                pl_man.delete_playlist(new_list_name)
-                break
+        add_locs = []
+        while len(new_list):
+            try:
+                add_locs.append( self.track_ids[new_list.pop(0)] )
+            except KeyError: pass
 
-        pl_man.create_static_playlist(new_list_name)
-        pl_list = pl_man.get_playlists()
-        for p in pl_list:
-            if isinstance(p, RB.StaticPlaylistSource) and p.props.name == new_list_name:
-                add_locs = []
-                try:
-                    while len(new_list):
-                        add_locs.append( self.track_ids[new_list.pop(0)] )
-                    s = p.add_locations(add_locs)
-                except KeyError: pass
-                break
+        playlists.remove(new_list_name)
+        pl = playlists.add(new_list_name)
+        pl.add_locations(add_locs)
 
     def remove_non_itunes_songs(self):
         entry_ids = set(self.track_ids.values())
