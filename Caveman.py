@@ -125,6 +125,8 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
             'songs': [],
             'playlists': [],
         }
+        self.existing_songs = set()
+        self.ext_db = RB.ExtDB(name="caveman")
 
         self.config = configparser.RawConfigParser()
         self.config_file = os.path.join(os.environ['HOME'], '.local/share/rhythmbox/cavemanrc')
@@ -144,6 +146,11 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         self.add_action('export-to-itunes', self.export_to_itunes,
             parentMenu='tools', menuName='Export to iTunes')
 
+        for row in self.object.props.library_source.props.base_query_model:
+            entry = row[0]
+            loc = self.object.props.db.entry_get(entry, prop.LOCATION)
+            self.existing_songs.add(loc)
+
         if self.config.getboolean('DEFAULT', 'auto_import'):
             self.import_from_itunes();
 
@@ -162,6 +169,7 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         self.track_ids = None
         self.import_queue = None
         self.export_queue = None
+        self.ext_db = None
 
     def get_xdg_music_dir(self):
         """
@@ -189,6 +197,14 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
             if next_song:
                 self.import_update_song(next_song)
             return True
+        print("Idle callback: winnowing songs")
+        if len(self.existing_songs) > 0:
+            try:
+                dead_uri = self.existing_songs.pop()
+                self.remove_song(dead_uri)
+                return True
+            except KeyError:
+                pass
         print("Idle callback: checking playlists")
         if len(self.import_queue['playlists']) > 0:
             next_list = self.import_queue['playlists'].pop(0)
@@ -265,7 +281,9 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         if song.isNew:
             # Song doesn't exist, we need to add it
             #print("Adding: "+new_song['Name'])
-            #song[prop.DESCRIPTION] = "(Caveman:TID={},PID={})".format(new_song['Track ID'], new_song['Persistent ID']);
+            for k in ('Track ID', 'Persistent ID'):
+                song[k] = new_song[k]
+
             for k, v in self.rb2it.items():
                 try:
                     if v == 'Total Time':
@@ -290,6 +308,18 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
 
         song.commit()
         self.track_ids[new_song['Track ID']] = song[prop.LOCATION]
+        self.existing_songs.discard(song[prop.LOCATION])
+
+    def remove_song(self, dead_uri):
+        """
+        Remove a song that was in the rhythmbox library,
+        but not the itunes library.
+        """
+        db = self.object.props.db
+        song = db.entry_lookup_by_location(dead_uri)
+        if song:
+            db.entry_delete(song)
+            db.commit()
 
     def import_update_playlist(self, new_list):
         pl_man = self.object.props.playlist_manager
@@ -307,9 +337,6 @@ class Caveman (RhythmUIHelper.RhythmUIHelper):
         playlists.remove(new_list_name)
         pl = playlists.add(new_list_name)
         pl.add_locations(add_locs)
-
-    def remove_non_itunes_songs(self):
-        entry_ids = set(self.track_ids.values())
 
 
 #

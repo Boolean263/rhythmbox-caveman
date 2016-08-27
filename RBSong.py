@@ -1,8 +1,10 @@
 from gi.repository import GObject, RB, Peas, Gio
 import datetime
+import json
 
 prop = RB.RhythmDBPropType
 datetime_type = type(datetime.datetime.now())
+prop_type = type(prop.ALBUM)
 
 class RBSong:
     # You'd think there'd be some way of getting this from rhythmbox
@@ -86,9 +88,14 @@ class RBSong:
 
     def __init__(self, db, uri):
         self.db = db
+        self.it_db = RB.ExtDB(name="caveman")
+        self.it_data = {}
+
         self.entry = db.entry_lookup_by_location(uri)
         if self.entry:
             self.isNew = False
+            key = entry.create_ext_db_key(prop.LOCATION)
+            self.it_db.request(key, it_data_fetched_cb)
         else:
             if uri[0:7] == 'file://':
                 entry_type = db.entry_type_get_by_name('song')
@@ -97,32 +104,54 @@ class RBSong:
             self.entry = RB.RhythmDBEntry.new(db, entry_type, uri)
             self.isNew = True
 
+    def it_data_fetched_cb(self, *args):
+        self.it_data = json.loads(args[0])
+
     def __getitem__(self, prop_id):
-        prop_type = self.propTypes[prop_id]
-        if prop_type == bool:
-            return self.entry.get_boolean(prop_id)
-        if prop_type == str:
-            return self.entry.get_string(prop_id)
-        elif prop_type == int:
-            return self.entry.get_ulong(prop_id)
-        elif prop_type == float:
-            return self.entry.get_double(prop_id)
-        elif prop_type == datetime_type:
-            n = self.entry.get_ulong(prop_id)
-            return datetime.datetime.fromtimestamp(n, tz=datetime.timezone.utc)
+        if type(prop_id) == prop_type:
+            # Standard rhythmbox property
+
+            prop_type = self.propTypes[prop_id]
+            if prop_type == bool:
+                return self.entry.get_boolean(prop_id)
+            if prop_type == str:
+                return self.entry.get_string(prop_id)
+            elif prop_type == int:
+                return self.entry.get_ulong(prop_id)
+            elif prop_type == float:
+                return self.entry.get_double(prop_id)
+            elif prop_type == datetime_type:
+                n = self.entry.get_ulong(prop_id)
+                return datetime.datetime.fromtimestamp(n, tz=datetime.timezone.utc)
+            else:
+                raise KeyError("invalid propid: "+prop_id)
+        else:
+            # Extended metadata
+            return self.it_data[prop_id]
+
 
     def __setitem__(self, prop_id, val):
         if val is None: return
-        if type(val) == datetime_type:
-            val = int(val.timestamp())
-        if prop_id == prop.RATING and val > 5:
-            # iTunes rates from 0-100, RB from 0-5
-            val = int(val / 20)
-        self.db.entry_set(self.entry, prop_id, val)
+        if type(prop_id) == prop_type:
+            # Standard rhythmbox property
+            if type(val) == datetime_type:
+                val = int(val.timestamp())
+            if prop_id == prop.RATING and val > 5:
+                # iTunes rates from 0-100, RB from 0-5
+                val = int(val / 20)
+            self.db.entry_set(self.entry, prop_id, val)
+        else:
+            # Extended metadata
+            self.it_data[prop_id] = val
         return val
 
     def commit(self):
+        # Save standard metadata
         self.db.commit()
+
+        # Save extended metadata
+        key = RB.ExtDBKey.create_storage("location", self.entry.get_string(prop.LOCATION))
+        self.it_db.store_uri(key, RB.ExtDBSourceType.USER, json.dumps(self.it_data))
         self.isNew = False
 
 #

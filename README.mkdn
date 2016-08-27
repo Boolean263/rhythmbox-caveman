@@ -1,0 +1,11 @@
+Caveman — Reinventing the iTunes Import Wheel
+=============================================
+
+This project isn’t ready for prime time yet. It’s very much a
+work in progress. I'm just putting it in github so it’s easier
+for me to link to others and get help on it.
+
+When (if) this is finished, it’ll read an iTunes library (in XML
+format), and pull in all songs and static playlists into Rhythmbox.
+It’ll eventually also have the ability to update the iTunes XML
+with any changes made to your library from Rhythmbox.
